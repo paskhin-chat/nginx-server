@@ -1,0 +1,21 @@
+name: Update ssl certs for domains
+
+on: workflow_dispatch
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update certs
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker exec nginx-server sh -c "\
+              certbot renew -n --agree-tos --webroot \
+
+              chown nginx:nginx -R /etc/letsencrypt/
+            "

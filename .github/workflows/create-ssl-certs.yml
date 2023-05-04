@@ -1,0 +1,36 @@
+name: Create ssl certs for domains
+
+on: workflow_dispatch
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        domain: [
+          paskhin.me,
+          chat.paskhin.me,
+          ui.chat.paskhin.me,
+          api.chat.paskhin.me,
+        ]
+      max-parallel: 1
+      fail-fast: true
+
+    steps:
+      - name: Create certs
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker exec nginx-server sh -c "\
+              mkdir -p /var/www/${{ matrix.domain }} && \
+
+              certbot certonly \
+              -n -m d.pasxin@gmail.com \
+              --agree-tos --force-renewal --webroot \
+              -w /var/www/${{ matrix.domain }} -d ${{ matrix.domain }} \
+
+              chown nginx:nginx -R /etc/letsencrypt/
+            "
